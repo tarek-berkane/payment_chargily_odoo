@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="payment_method_chargily_edahabia" model="payment.method">
+        <field name="name">Edahabia</field>
+        <field name="code">edahabia</field>
+        <field name="sequence">1</field>
+        <field name="image" type="base64" file="payment_chargily/static/img/edahabia.png"/>
+        <field name="support_tokenization">False</field>
+        <field name="support_express_checkout">False</field>
+        <field name="support_refund">partial</field>
+    </record>
+
+    <record id="payment_method_chargily_cib" model="payment.method">
+        <field name="name">CIB</field>
+        <field name="code">cib</field>
+        <field name="sequence">2</field>
+        <field name="image" type="base64" file="payment_chargily/static/img/cib.png"/>
+        <field name="support_tokenization">False</field>
+        <field name="support_express_checkout">False</field>
+        <field name="support_refund">partial</field>
+    </record>
+
+</odoo>
