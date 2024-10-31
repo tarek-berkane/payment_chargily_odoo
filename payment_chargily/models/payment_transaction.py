@@ -2,12 +2,11 @@
 
 import logging
 import pprint
-from urllib.parse import quote as url_quote
 
 from werkzeug import urls
 
 from odoo import _, api, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import ValidationError
 
 from .. import const
 from ..controllers.main import ChargilyController
@@ -39,9 +38,7 @@ class PaymentTransaction(models.Model):
             pprint.pformat(payload),
         )
 
-        response = self.provider_id._chargily_make_request(
-            "checkouts", payload=payload
-        )
+        response = self.provider_id._chargily_make_request("checkouts", payload=payload)
 
         # save checkout id to use later in webhook and return endpoint
         self.provider_reference = response.get("id")
@@ -64,12 +61,8 @@ class PaymentTransaction(models.Model):
         :return: The request payload.
         :rtype: dict
         """
-        webhook_base_url = "https://1862-41-107-138-189.ngrok-free.app/"
         base_url = self.provider_id.get_base_url()
         return_url = urls.url_join(base_url, ChargilyController._return_url)
-        webhook_url = urls.url_join(
-            webhook_base_url, f"{ChargilyController._webhook_url}"
-        )  # Append the reference to identify the transaction from the webhook notification data.
 
         return {
             "amount": self.amount,
@@ -77,7 +70,6 @@ class PaymentTransaction(models.Model):
             "payment_method": self.payment_method_code,
             "success_url": return_url,
             "failure_url": return_url,
-            "webhook_endpoint": webhook_url,
         }
 
     def _get_tx_from_notification_data(self, provider_code, notification_data):
@@ -96,17 +88,12 @@ class PaymentTransaction(models.Model):
 
         provider_reference = notification_data.get("data", {}).get("id")
         if not provider_reference:
-            raise ValidationError(
-                "Chargily: " + _("Received data with missing provider_reference.")
-            )
+            raise ValidationError("Chargily: " + _("Received data with missing provider_reference."))
 
-        tx = self.search(
-            [("provider_reference", "=", provider_reference), ("provider_code", "=", "chargily")]
-        )
+        tx = self.search([("provider_reference", "=", provider_reference), ("provider_code", "=", "chargily")])
         if not tx:
             raise ValidationError(
-                "Chargily: "
-                + _("No transaction found matching provider_reference %s.", provider_reference)
+                "Chargily: " + _("No transaction found matching provider_reference %s.", provider_reference)
             )
         return tx
 
@@ -133,10 +120,7 @@ class PaymentTransaction(models.Model):
         # Update the payment state.
         payment_status = notification_data.get("type")
         if not payment_status:
-            raise ValidationError(
-                "Chargily: " + _("Received data with missing status.")
-            )
-
+            raise ValidationError("Chargily: " + _("Received data with missing status."))
 
         if payment_status in const.TRANSACTION_STATUS_MAPPING["done"]:
             self._set_done()
@@ -156,10 +140,7 @@ class PaymentTransaction(models.Model):
                 self.reference,
                 payment_status,
             )
-            self._set_error(
-                "Chargily: "
-                + _("Received data with invalid status: %s", payment_status)
-            )
+            self._set_error("Chargily: " + _("Received data with invalid status: %s", payment_status))
 
     @api.model
     def _chargily_get_error_msg(self, status_detail):
